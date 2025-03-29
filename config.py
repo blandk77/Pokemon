@@ -1,36 +1,44 @@
 import os
 
-# Telegram API Configuration
+# Telegram API credentials
 API_ID = int(os.environ.get("API_ID", ""))
 API_HASH = os.environ.get("API_HASH", "")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 
-# MongoDB Configuration
-MONGODB_URL = os.environ.get("MONGODB_URL", "")
-DATABASE_NAME = os.environ.get("DATABASE_NAME", "VideoEncoderBot")
+# MongoDB configuration
+MONGO_URL = os.environ.get("MONGO_URL", "")
+DATABASE_NAME = "encoding_bot"
 
-# User Channel to add a new user
-USER_CHANNEL = int(os.environ.get("USER_CHANNEL", ""))
+# Dump Channel ID
+DUMP_CHANNEL_ID = int(os.environ.get("DUMP_CHANNEL_ID", ""))
 
-# Dump Channel to dump the encoded files
-DUMP_CHANNEL = int(os.environ.get("DUMP_CHANNEL", ""))
+# User Join Channel
+USER_JOIN_CHANNEL = int(os.environ.get("USER_JOIN_CHANNEL", ""))
 
-# FFmpeg Settings (Defaults - Can be overridden by user)
-DEFAULT_CRF = "30"
-DEFAULT_VIDEO_CODEC = "libx264"
+# Encoding settings (default values)
+DEFAULT_CRF = 30
+DEFAULT_CODEC = "libx264"
 DEFAULT_AUDIO_CODEC = "aac"
+DEFAULT_QUALITY = "360p"
 
-# Watermark Positions
+# Watermark positions (example)
 WATERMARK_POSITIONS = {
-    "top_left": "x=10:y=10",
-    "top_right": "x=main_w-text_w-10:y=10",
-    "bottom_left": "x=10:y=main_h-text_h-10",
-    "bottom_right": "x=main_w-text_w-10:y=main_h-text_h-10",
+    "top-left": "x=10:y=10",
+    "top-right": "x=main_w-text_w-10:y=10",
+    "bottom-left": "x=10:y=main_h-text_h-10",
+    "bottom-right": "x=main_w-text_w-10:y=main_h-text_h-10",
     "center": "x=(main_w-text_w)/2:y=(main_h-text_h)/2"
 }
 
-# System Stats Update Interval (seconds)
-STATS_UPDATE_INTERVAL = 5
+# Auto Rename Options
+AUTO_RENAME_DEFAULT = False
 
-# Auto Rename Defaults
-DEFAULT_AUTO_RENAME = False
+# Metadata Default
+METADATA_DEFAULT = False
+
+# Thumbnail Default
+THUMBNAIL_DEFAULT = False
+
+# Flask Configuration
+FLASK_HOST = "0.0.0.0"
+FLASK_PORT = int(os.environ.get("PORT", 5000))  # Use PORT env var for Heroku/etc.
