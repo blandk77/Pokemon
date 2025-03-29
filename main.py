@@ -1,118 +1,68 @@
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from flask import Flask
+import asyncio
+import logging
 import os
+from pyrogram import Client
+from pyrogram.types import BotCommand
+
+from config import API_ID, API_HASH, BOT_TOKEN
+from Bot.commands import start, help, settings, encode
+from Bot.callbacks import crf_callback, codec_callback
+from webapp import app  # Import Flask app
 import threading
-from config import API_ID, API_HASH, BOT_TOKEN, WATERMARK_POSITIONS, FLASK_HOST, FLASK_PORT, DUMP_CHANNEL_ID, MONGO_URL
-from commands import register_commands
-from encoding import encode_file
-from pymongo import MongoClient
 
-app = Client("encoding_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-flask_app = Flask(__name__)
+# Enable logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
 
-# MongoDB client
-mongo_client = MongoClient(MONGO_URL)
-db = mongo_client.get_default_database()
-users_collection = db["users"]
+LOGGER = logging.getLogger(__name__)
 
-# Flask health check endpoint
-@flask_app.route("/health")
-def health():
-    return "Bot is running", 200
+# Initialize Pyrogram Client
+bot = Client(
+    "VideoEncoderBot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
-def run_flask():
-    flask_app.run(host=FLASK_HOST, port=FLASK_PORT)
+# Register commands
+start.register_handlers(bot)
+help.register_handlers(bot)
+settings.register_handlers(bot)
+encode.register_handlers(bot)
 
-# Handle file uploads
-@app.on_message(filters.document | filters.video)
-async def handle_file(client, message):
-    user_id = message.from_user.id
-    file = await message.download()
+# Register Callback queries
+crf_callback.register_handlers(bot)
+codec_callback.register_handlers(bot)
 
-    output_path = f"encoded_{os.path.basename(file)}"
-    success, result = encode_file(user_id, file, output_path)
+async def main():
+    try:
+        await bot.start()
+        LOGGER.info("Bot started successfully!")
 
-    if not success:
-        await message.reply_text(result)
-        os.remove(file)
-        return
+        # Set bot commands
+        await bot.set_bot_commands([
+            BotCommand("start", "Start the bot"),
+            BotCommand("help", "Get help"),
+            BotCommand("settings", "Configure encoding settings"),
+            BotCommand("encode", "Encode your video")
+        ])
 
-    output_path, caption = result
-    await message.reply_document(output_path, caption=caption)
-    await client.send_document(DUMP_CHANNEL_ID, output_path, caption=caption)
-    os.remove(file)
-    os.remove(output_path)
+        # Get bot information
+        me = await bot.get_me()
+        LOGGER.info(f"Bot username: {me.username}")
 
-# Handle settings callbacks
-@app.on_callback_query()
-async def handle_callback(client, query):
-    user_id = query.from_user.id
-    data = query.data.split("_")
-
-    if data[0] == "set":
-        param = data[1]
-        if param == "watermark":
-            await query.message.reply_text("Send the watermark text:")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "watermark"}})
-        elif param == "crf":
-            await query.message.reply_text("Send CRF value (0-51):")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "crf"}})
-        elif param == "quality":
-            await query.message.reply_text("Send quality (e.g., 720p):")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "quality"}})
-        elif param == "rename":
-            await query.message.reply_text("Send rename pattern (e.g., {season}{episodes}_{quality}):")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "rename_pattern"}})
-        elif param == "caption":
-            await query.message.reply_text("Send caption pattern (e.g., {filename} | {quality}):")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "caption_pattern"}})
-        elif param == "meta":
-            await query.message.reply_text("Send metadata (e.g., title=My Video;comment=Test):")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "metadata"}})
-        elif param == "thumb":
-            await query.message.reply_text("Send an image for thumbnail:")
-            users_collection.update_one({"user_id": user_id}, {"$set": {"pending": "thumbnail"}})
-    elif data[0] == "toggle":
-        current = users_collection.find_one({"user_id": user_id})["auto_rename"]
-        users_collection.update_one({"user_id": user_id}, {"$set": {"auto_rename": not current}})
-        await query.message.reply_text(f"Auto Rename set to: {not current}")
-    elif data[0] == "pos":
-        pos = "_".join(data[2:])
-        users_collection.update_one({"user_id": user_id}, {"$set": {"watermark_pos": pos}})
-        await query.message.reply_text(f"Watermark position set to: {pos}")
-
-# Handle text input for settings
-@app.on_message(filters.text & ~filters.command(["start", "settings", "help"]))
-async def handle_text(client, message):
-    user_id = message.from_user.id
-    user_data = users_collection.find_one({"user_id": user_id})
-    if user_data and "pending" in user_data:
-        pending = user_data["pending"]
-        if pending == "watermark":
-            users_collection.update_one({"user_id": user_id}, {"$set": {"watermark": message.text}})
-            buttons = [[InlineKeyboardButton(pos, callback_data=f"pos_{user_id}_{pos}")] for pos in WATERMARK_POSITIONS]
-            await message.reply_text(
-                "Choose watermark position:",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-        elif pending in ["crf", "quality", "rename_pattern", "caption_pattern", "metadata"]:
-            users_collection.update_one({"user_id": user_id}, {"$set": {pending: message.text}})
-            await message.reply_text(f"{pending.capitalize()} set to: {message.text}")
-        users_collection.update_one({"user_id": user_id}, {"$unset": {"pending": ""}})
-
-# Handle thumbnail image
-@app.on_message(filters.photo)
-async def handle_thumbnail(client, message):
-    user_id = message.from_user.id
-    user_data = users_collection.find_one({"user_id": user_id})
-    if user_data and user_data.get("pending") == "thumbnail":
-        file = await message.download()
-        users_collection.update_one({"user_id": user_id}, {"$set": {"thumbnail": file}})
-        await message.reply_text("Thumbnail set!")
-        users_collection.update_one({"user_id": user_id}, {"$unset": {"pending": ""}})
+        # Keep the bot running (idle)
+        await asyncio.idle()
+    except Exception as e:
+        LOGGER.error(f"An error occurred: {e}")
+    finally:
+        await bot.stop()
+        LOGGER.info("Bot stopped.")
 
 if __name__ == "__main__":
-    register_commands(app)
-    threading.Thread(target=run_flask, daemon=True).start()
-    app.run()
+    # Start Flask app in a separate thread
+    flask_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': int(os.environ.get("PORT", 5000))})
+    flask_thread.start()
+    asyncio.run(main())
