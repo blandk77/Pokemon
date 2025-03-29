@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"  # Expose Flask port
+    environment:
+      - API_ID=YOUR_API_ID
+      - API_HASH=YOUR_API_HASH
+      - BOT_TOKEN=YOUR_BOT_TOKEN
+      - MONGO_URL=mongodb://mongo:27017/encoding_bot
+      - DUMP_CHANNEL_ID=YOUR_DUMP_CHANNEL_ID
+      - USER_JOIN_CHANNEL=YOUR_JOIN_CHANNEL_ID
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
