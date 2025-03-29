@@ -8,6 +8,8 @@ from pyrogram.types import BotCommand
 from config import API_ID, API_HASH, BOT_TOKEN
 from Bot.commands import start, help, settings
 from Bot.handlers import message_handler
+from flask import Flask, render_template, request
+from aiohttp import web
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -15,6 +17,16 @@ logging.basicConfig(
 
 # Create pyrogram client
 bot = Client("EncodingBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+async def run_flask_app():
+    from Bot.commands import settings  # Import settings here to avoid circular imports
+    app = settings.app  # Access the Flask app from settings.py
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 5000)  # Use config.FLASK_HOST/PORT from config.py
+    await site.start()
+    print("Flask app started on port 5000")
 
 async def main():
     await bot.start()
@@ -39,7 +51,11 @@ async def main():
     bot_username = me.username
 
     print(f"@{bot_username} started successfully!")
-    await asyncio.idle()
+
+    flask_task = asyncio.create_task(run_flask_app())
+
+    await asyncio.gather(asyncio.sleep(1), flask_task, bot.idle())
+
     await bot.stop()
 
 if __name__ == "__main__":
