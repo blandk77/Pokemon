@@ -4,3 +4,4 @@ python-dotenv
 ffmpeg-python
 flask
 psutil
+motor
