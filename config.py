@@ -1,10 +1,14 @@
 import os
 
+#Telegram Api
+API_ID = os.getenv("API_ID", "")
+API_HASH = os.getenv("API_HASH", "")
+
 #Telegram Bot Token (get from BotFather)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # MongoDB URL
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/encoding_bot")
+MONGO_URL = os.getenv("MONGO_URL", "")
 
 # Dump Channel ID (where encoded files are sent in addition to the user)
 DUMP_CHANNEL_ID = os.getenv("DUMP_CHANNEL_ID", "-1001234567890")
