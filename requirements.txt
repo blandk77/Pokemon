@@ -1,6 +1,6 @@
-Pyrogram
+pyrogram
 pymongo
 python-dotenv
 ffmpeg-python
-psutil
 flask
+psutil
