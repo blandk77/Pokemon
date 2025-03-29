@@ -1,42 +1,36 @@
 import os
 
-#Telegram Api
-API_ID = os.getenv("API_ID", "")
-API_HASH = os.getenv("API_HASH", "")
+# Telegram API Configuration
+API_ID = int(os.environ.get("API_ID", ""))
+API_HASH = os.environ.get("API_HASH", "")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 
-#Telegram Bot Token (get from BotFather)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+# MongoDB Configuration
+MONGODB_URL = os.environ.get("MONGODB_URL", "")
+DATABASE_NAME = os.environ.get("DATABASE_NAME", "VideoEncoderBot")
 
-# MongoDB URL
-MONGO_URL = os.getenv("MONGO_URL", "")
+# User Channel to add a new user
+USER_CHANNEL = int(os.environ.get("USER_CHANNEL", ""))
 
-# Dump Channel ID (where encoded files are sent in addition to the user)
-DUMP_CHANNEL_ID = os.getenv("DUMP_CHANNEL_ID", "-1001234567890")
+# Dump Channel to dump the encoded files
+DUMP_CHANNEL = int(os.environ.get("DUMP_CHANNEL", ""))
 
-# User Channel ID (where new user notifications are sent)
-USER_CHANNEL_ID = os.getenv("USER_CHANNEL_ID", "-1009876543210")
-
-# Flask settings
-FLASK_HOST = "0.0.0.0"
-FLASK_PORT = 5000
-
-# Default FFmpeg settings (can be overridden by users)
-DEFAULT_CRF = None  # Required field
-DEFAULT_WATERMARK = None  # Optional
+# FFmpeg Settings (Defaults - Can be overridden by user)
+DEFAULT_CRF = "30"
 DEFAULT_VIDEO_CODEC = "libx264"
 DEFAULT_AUDIO_CODEC = "aac"
-DEFAULT_QUALITY = None  # Required field
-DEFAULT_METADATA = None  # Optional
-DEFAULT_THUMBNAIL = None  # Optional
-DEFAULT_AUTO_RENAME = False
-DEFAULT_RENAME_PATTERN = "{season}{episodes}_{quality}_{audio}"
-DEFAULT_CAPTION_PATTERN = "{filename} | {filesize} | {quality} | {audio}"
 
-# Watermark position options (for UI buttons)
+# Watermark Positions
 WATERMARK_POSITIONS = {
-    "Top-Left": "x=10:y=10",
-    "Top-Right": "x=main_w-text_w-10:y=10",
-    "Bottom-Left": "x=10:y=main_h-text_h-10",
-    "Bottom-Right": "x=main_w-text_w-10:y=main_h-text_h-10",
-    "Center": "x=(main_w-text_w)/2:y=(main_h-text_h)/2"
+    "top_left": "x=10:y=10",
+    "top_right": "x=main_w-text_w-10:y=10",
+    "bottom_left": "x=10:y=main_h-text_h-10",
+    "bottom_right": "x=main_w-text_w-10:y=main_h-text_h-10",
+    "center": "x=(main_w-text_w)/2:y=(main_h-text_h)/2"
 }
+
+# System Stats Update Interval (seconds)
+STATS_UPDATE_INTERVAL = 5
+
+# Auto Rename Defaults
+DEFAULT_AUTO_RENAME = False
