@@ -1,19 +1,19 @@
 import os
 
 # Telegram API credentials
-API_ID = int(os.environ.get("API_ID", ""))
-API_HASH = os.environ.get("API_HASH", "")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+API_ID = int(os.environ.get("API_ID", "26728872"))
+API_HASH = os.environ.get("API_HASH", "90a9aa4c31afa3750da5fd686c410851")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "7773651775:AAEH1TN8P5700Ni7fluT9A7uE0xUWuZ0slE")
 
 # MongoDB configuration
-MONGO_URL = os.environ.get("MONGO_URL", "")
+MONGO_URL = os.environ.get("MONGO_URL", "mongodb+srv://telegramguy21:tnkIwvbNkJ5U3fZ7@botsuse.bpgag.mongodb.net/?retryWrites=true&w=majority&appName=Botsuse")
 DATABASE_NAME = "encoding_bot"
 
 # Dump Channel ID
-DUMP_CHANNEL_ID = int(os.environ.get("DUMP_CHANNEL_ID", ""))
+DUMP_CHANNEL_ID = int(os.environ.get("DUMP_CHANNEL_ID", "-1002288135729"))
 
 # User Join Channel
-USER_JOIN_CHANNEL = int(os.environ.get("USER_JOIN_CHANNEL", ""))
+USER_JOIN_CHANNEL = int(os.environ.get("USER_JOIN_CHANNEL", "-1002288135729"))
 
 # Encoding settings (default values)
 DEFAULT_CRF = 30
