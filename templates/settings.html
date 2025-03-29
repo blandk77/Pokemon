@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoding Bot Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Encoding Bot Settings</h1>
+    <form method="post">
+        <label for="crf">CRF:</label>
+        <input type="number" id="crf" name="crf" value="{{ user_data.crf or '' }}"><br><br>
+
+        <label for="codec">Codec:</label>
+        <input type="text" id="codec" name="codec" value="{{ user_data.codec or '' }}"><br><br>
+
+        <label for="audio_codec">Audio Codec:</label>
+        <input type="text" id="audio_codec" name="audio_codec" value="{{ user_data.audio_codec or '' }}"><br><br>
+
+        <label for="quality">Quality:</label>
+        <input type="text" id="quality" name="quality" value="{{ user_data.quality or '' }}"><br><br>
+
+        <label for="watermark">Watermark:</label>
+        <input type="text" id="watermark" name="watermark" value="{{ user_data.watermark or '' }}"><br><br>
+
+        <label for="watermark_position">Watermark Position:</label>
+        <select id="watermark_position" name="watermark_position">
+            <option value="">Select Position</option>
+            {% for key, value in watermark_positions.items() %}
+                <option value="{{ value }}" {% if user_data.watermark_position == value %}selected{% endif %}>{{ key }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="auto_rename">Auto Rename:</label>
+        <input type="checkbox" id="auto_rename" name="auto_rename" value="true" {% if user_data.auto_rename %}checked{% endif %}><br><br>
+
+        <label for="auto_rename_format">Auto Rename Format:</label>
+        <input type="text" id="auto_rename_format" name="auto_rename_format" value="{{ user_data.auto_rename_format or '' }}"><br><br>
+
+        <label for="caption_format">Caption Format:</label>
+        <input type="text" id="caption_format" name="caption_format" value="{{ user_data.caption_format or '' }}"><br><br>
+
+        <label for="thumbnail">Thumbnail:</label>
+        <input type="checkbox" id="thumbnail" name="thumbnail" value="true" {% if user_data.thumbnail %}checked{% endif %}><br><br>
+
+        <label for="metadata">Metadata:</label>
+        <input type="checkbox" id="metadata" name="metadata" value="true" {% if user_data.metadata %}checked{% endif %}><br><br>
+
+        <input type="submit" value="Save Settings">
+    </form>
+</body>
+  </html>
