@@ -3,7 +3,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 import os
 import threading
-from config import BOT_TOKEN, WATERMARK_POSITIONS, FLASK_HOST, FLASK_PORT, DUMP_CHANNEL_ID, MONGO_URL
+from config import API_ID, API_HASH, BOT_TOKEN, WATERMARK_POSITIONS, FLASK_HOST, FLASK_PORT, DUMP_CHANNEL_ID, MONGO_URL
 from commands import register_commands
 from encoding import encode_file
 from pymongo import MongoClient
