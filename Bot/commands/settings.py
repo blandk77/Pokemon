@@ -5,6 +5,7 @@ from config import WATERMARK_POSITIONS
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
 
 def register_handlers(bot: Client):
     @bot.on_message(filters.command("settings"))
@@ -75,7 +76,3 @@ async def settings_page(user_id):
 @app.route('/')
 def home():
     return "Encoding Bot Settings"
-
-# Start the Flask app
-#if __name__ == '__main__':
-#    app.run(debug=True)
