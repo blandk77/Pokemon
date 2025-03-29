@@ -1,8 +1,8 @@
-pyrogram
+pyrofork
 pymongo
 python-dotenv
 ffmpeg-python
 flask
 psutil
-motor
 aiohttp
+aiohttp-wsgi
