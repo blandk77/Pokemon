@@ -2,50 +2,80 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from Bot.database import DB
 from config import WATERMARK_POSITIONS
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
 
 def register_handlers(bot: Client):
     @bot.on_message(filters.command("settings"))
     async def settings_command(client: Client, message: Message):
         user_id = message.from_user.id
-        user_settings = await DB.get_user_settings(user_id)
+        username = message.from_user.username or message.from_user.first_name
+        user_data = await DB.get_user(user_id)
 
-        crf = user_settings.get("crf", None)
-        video_codec = user_settings.get("video_codec", None)
-        audio_codec = user_settings.get("audio_codec", None)
-        watermark_text = user_settings.get("watermark_text", None)
-        watermark_position = user_settings.get("watermark_position", None)
-        auto_rename = user_settings.get("auto_rename", False)
-        auto_rename_format = user_settings.get("auto_rename_format", None)
-        caption_format = user_settings.get("caption_format", None)
-        thumbnail = user_settings.get("thumbnail", None)
-        metadata = user_settings.get("metadata", None)
+        if user_data:
+            crf = user_data.get("crf")
+            watermark = user_data.get("watermark")
+            codec = user_data.get("codec")
+            audio_codec = user_data.get("audio_codec")
+            quality = user_data.get("quality")
+            auto_rename = user_data.get("auto_rename")
+            auto_rename_format = user_data.get("auto_rename_format")
+            caption_format = user_data.get("caption_format")
+            thumbnail = user_data.get("thumbnail")
+            metadata = user_data.get("metadata")
+            watermark_position = user_data.get("watermark_position")
 
-        settings_text = f"""
-**Settings for user:** {message.from_user.username}
+            settings_text = f"""
+            Settings for user: {username}
 
-**CRF:** {crf if crf else "None"}
-**Video Codec:** {video_codec if video_codec else "None"}
-**Audio Codec:** {audio_codec if audio_codec else "None"}
-**Watermark:** {watermark_text if watermark_text else "None"}
-**Watermark Position:** {watermark_position if watermark_position else "None"}
-**Auto Rename:** {auto_rename}
-**Auto Rename Format:** {auto_rename_format if auto_rename_format else "None"}
-**Caption Format:** {caption_format if caption_format else "None"}
-**Thumbnail:** {thumbnail if thumbnail else "None"}
-**Metadata:** {metadata if metadata else "None"}
-"""
+            Crf: {crf if crf else "None"}
+            Watermark: {watermark if watermark else "None"}
+            Codec: {codec if codec else "None"}
+            Audio Codec: {audio_codec if audio_codec else "None"}
+            Quality: {quality if quality else "None"}
+            Auto Rename: {auto_rename if auto_rename is not None else "False"}
+            Auto Rename Format: {auto_rename_format if auto_rename_format else "None"}
+            Caption Format: {caption_format if caption_format else "None"}
+            Thumbnail: {thumbnail if thumbnail else "None"}
+            Metadata: {metadata if metadata else "None"}
+            Watermark Position: {watermark_position if watermark_position else "None"}
+            """
 
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Set CRF", callback_data="set_crf")],
-            [InlineKeyboardButton("Set Video Codec", callback_data="set_video_codec")],
-            [InlineKeyboardButton("Set Audio Codec", callback_data="set_audio_codec")],
-            [InlineKeyboardButton("Set Watermark Text", callback_data="set_watermark_text")],
-            [InlineKeyboardButton("Set Watermark Position", callback_data="set_watermark_position")],
-            [InlineKeyboardButton("Toggle Auto Rename", callback_data="toggle_auto_rename")],
-            [InlineKeyboardButton("Set Auto Rename Format", callback_data="set_auto_rename_format")],
-            [InlineKeyboardButton("Set Caption Format", callback_data="set_caption_format")],
-            [InlineKeyboardButton("Set Thumbnail", callback_data="set_thumbnail")],
-            [InlineKeyboardButton("Set Metadata", callback_data="set_metadata")]
-        ])
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("Edit Settings", url=f"http://localhost:5000/settings/{user_id}")]
+            ])
 
-        await message.reply_text(settings_text, reply_markup=keyboard)
+            await message.reply_text(settings_text, reply_markup=keyboard)
+        else:
+            await message.reply_text("No settings found. Please configure your settings.")
+
+@app.route('/settings/<int:user_id>', methods=['GET', 'POST'])
+async def settings_page(user_id):
+    user_data = await DB.get_user(user_id)
+    if request.method == 'POST':
+        crf = request.form.get('crf')
+        watermark = request.form.get('watermark')
+        codec = request.form.get('codec')
+        audio_codec = request.form.get('audio_codec')
+        quality = request.form.get('quality')
+        auto_rename = request.form.get('auto_rename') == 'true'
+        auto_rename_format = request.form.get('auto_rename_format')
+        caption_format = request.form.get('caption_format')
+        thumbnail = request.form.get('thumbnail') == 'true'
+        metadata = request.form.get('metadata') == 'true'
+        watermark_position = request.form.get('watermark_position')
+
+        await DB.update_user(user_id, crf, watermark, codec, audio_codec, quality, auto_rename, auto_rename_format, caption_format, thumbnail, metadata, watermark_position)
+
+        return "Settings updated successfully!"
+
+    return render_template('settings.html', user_data=user_data, watermark_positions=WATERMARK_POSITIONS)
+
+@app.route('/')
+def home():
+    return "Encoding Bot Settings"
+
+# Start the Flask app
+#if __name__ == '__main__':
+#    app.run(debug=True)
